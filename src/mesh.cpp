@@ -31,9 +31,12 @@ void Mesh::draw(Shader shader)
 		{
 			number = std::to_string(specularIdx++);
 			name = "specular";
-			shader.setFloat("material.shininess", 32.0f);
+			shader.setFloat("material.shininess", _textures[i].shininess);
 		}
 			
+		shader.setVec3("material.ka", _textures[i].ka);
+		shader.setVec3("material.kd", _textures[i].kd);
+		shader.setVec3("material.ks", _textures[i].ks);
 		shader.setFloat(("material." + name + number).c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, _textures[i].id);
 	}

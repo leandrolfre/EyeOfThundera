@@ -25,5 +25,5 @@ private:
 private:
 	std::vector<Mesh> _meshes;
 	std::string _directory;
-	std::unordered_map<std::string, bool> _textureCache;
+	std::unordered_map<std::string, Texture> _textureCache;
 };

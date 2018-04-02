@@ -16,8 +16,12 @@ struct Vertex
 struct Texture 
 {
 	unsigned int id;
+	float shininess;
 	std::string type;
 	std::string path;
+	glm::vec3 ka;
+	glm::vec3 kd;
+	glm::vec3 ks;
 };
 
 class Mesh

@@ -6,6 +6,9 @@ struct Material {
 	sampler2D diffuse0;
 	sampler2D specular0;
 	float shininess;
+	vec3 ka;
+	vec3 kd;
+	vec3 ks;
 };
 
 struct SpotLight {
@@ -50,21 +53,9 @@ in vec3 FragPos;
 
 out vec4 FragColor;
 
-vec3 calculateAmbient(vec3 ambientLight) 
-{
-	return texture(material.diffuse0, TexCoord).rgb * ambientLight;
-}
-
-vec3 calculateDiffuse(vec3 diffuseLight, vec3 normal, vec3 lightDir) 
-{
-	return max(dot(normal, lightDir), 0.0) * diffuseLight * texture(material.diffuse0, TexCoord).rgb;
-}
-
-vec3 calculateSpecular(vec3 specularLight, vec3 normal, vec3 lightDir, vec3 viewDir) 
-{
-	vec3 reflectDir = reflect(-lightDir, normal);
-	return pow(max(dot(viewDir, reflectDir), 0.0), material.shininess) * texture(material.specular0, TexCoord).rgb * specularLight;
-}
+vec3 calculateAmbient(vec3 ambientLight);
+vec3 calculateDiffuse(vec3 diffuseLight, vec3 normal, vec3 lightDir);
+vec3 calculateSpecular(vec3 specularLight, vec3 normal, vec3 lightDir, vec3 viewDir);
 
 vec3 calculateDirectionalLight(DirLight light, vec3 normal, vec3 viewDir) 
 {

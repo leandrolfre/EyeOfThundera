@@ -30,7 +30,6 @@ unsigned int Model::loadTexture(const std::string& textureName)
 		glGenTextures(1, &textureId);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_DEPTH_TEST);
 
 		glBindTexture(GL_TEXTURE_2D, textureId);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -134,9 +133,9 @@ std::vector<Texture> Model::loadMaterialTexture(aiMaterial* material, aiTextureT
 	{
 		aiString str;
 		material->GetTexture(type, i, &str);
-
 		if (_textureCache.find(str.data) != _textureCache.end()) 
 		{
+			textures.push_back(_textureCache[str.data]);
 			continue;
 		}
 
@@ -144,8 +143,21 @@ std::vector<Texture> Model::loadMaterialTexture(aiMaterial* material, aiTextureT
 		texture.id = loadTexture(_directory + str.C_Str());
 		texture.type = typeName;
 		texture.path = str.data;
+		material->Get(AI_MATKEY_SHININESS, texture.shininess);
+		
+		aiColor3D ka(1.f, 1.f, 1.f);
+		aiColor3D kd(1.f, 1.f, 1.f);
+		aiColor3D ks(1.f, 1.f, 1.f);
+		material->Get(AI_MATKEY_COLOR_AMBIENT, ka);
+		material->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
+		material->Get(AI_MATKEY_COLOR_SPECULAR, ks);
+		
+		texture.ka = glm::vec3(ka.r, ka.g, ka.b);
+		texture.kd = glm::vec3(kd.r, kd.g, kd.b);
+		texture.ks = glm::vec3(ks.r, ks.g, ks.b);
+
 		textures.push_back(texture);
-		_textureCache[str.data] = true;
+		_textureCache[str.data] = texture;
 	}
 	return textures;
 }

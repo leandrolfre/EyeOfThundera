@@ -4,42 +4,42 @@
 #include <sstream>
 #include <glad\glad.h>
 
-void Shader::load(const char* vertexPath, const char* fragmentPath) 
+void Shader::load(const std::string& vertexPath, const std::string& fragmentPath) 
 {
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	unsigned int fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	const char* vertCode, *fragCode;
-	
-	std::ifstream vertexFile(vertexPath), fragmentFile(fragmentPath);
-	std::stringstream vStream, fStream;
-
-	vStream << vertexFile.rdbuf();
-	fStream << fragmentFile.rdbuf();
-
-	std::string vstr = vStream.str();
-	std::string fstr = fStream.str();
-
-	vertCode = vstr.c_str();
-	fragCode = fstr.c_str();
-
-	vertexFile.close();
-	fragmentFile.close();
-
-	glShaderSource(vertexShader, 1, &vertCode, nullptr);
-	glCompileShader(vertexShader);
-
-	glShaderSource(fragShader, 1, &fragCode, nullptr);
-	glCompileShader(fragShader);
-	
-	checkError(vertexShader);
-	checkError(fragShader);
+	unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexPath);
+	unsigned int fragShader = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
+	unsigned int lmShader = compileShader(GL_FRAGMENT_SHADER, "lightModels.frag");
 
 	_id = glCreateProgram();
 	glAttachShader(_id, vertexShader);
+	glAttachShader(_id, lmShader);
 	glAttachShader(_id, fragShader);
 	glLinkProgram(_id);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragShader);
+	glDeleteShader(lmShader);
+}
+
+unsigned int Shader::compileShader(unsigned int type, const std::string& path)
+{
+	unsigned int shader = glCreateShader(type);
+
+	const char* shaderCode;
+
+	std::ifstream shaderFile(path);
+	std::stringstream ss;
+
+	ss << shaderFile.rdbuf();
+	const std::string tmpStr = ss.str();
+	shaderCode = tmpStr.c_str();
+	shaderFile.close();
+
+	glShaderSource(shader, 1, &shaderCode, nullptr);
+	glCompileShader(shader);
+
+	checkError(shader);
+
+	return shader;
 }
 
 void Shader::checkError(unsigned int shader) const 
@@ -83,6 +83,11 @@ void Shader::setMat4(const std::string &name, unsigned int count, bool transpose
 void Shader::setVec3(const std::string & name, const float x, const float y, const float z) const
 {
 	glUniform3f(glGetUniformLocation(_id, name.c_str()), x, y, z);
+}
+
+void Shader::setVec3(const std::string & name, const glm::vec3 & vector) const
+{
+	setVec3(name, vector.x, vector.y, vector.z);
 }
 
 void Shader::setVec4(const std::string & name, const float x, const float y, const float z, const float w) const
