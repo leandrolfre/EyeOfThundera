@@ -1,55 +1,18 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include "model.h"
 #include "shader.hpp"
-#include "stb_image.h"
 #include "mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <iostream>
-#include <glad\glad.h>
-
-
-unsigned int Model::loadTexture(const std::string& textureName)
-{
-
-	int width, height, channels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(textureName.c_str(), &width, &height, &channels, 0);
-	GLuint textureId = 0;
-	if (data)
-	{
-
-		GLenum format;
-		if (channels == 1)
-			format = GL_RED;
-		else if (channels == 3)
-			format = GL_RGB;
-		else if (channels == 4)
-			format = GL_RGBA;
-
-		glGenTextures(1, &textureId);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glBindTexture(GL_TEXTURE_2D, textureId);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(data);
-	}
-
-	return textureId;
-}
+#include "TextureManager.h"
+#include <memory>
 
 Model::Model(const std::string& path)
 {
 	loadModel(path);
 }
 
-void Model::draw(Shader shader)
+void Model::draw(const Shader& shader)
 {
 	for (int i = 0; i < _meshes.size(); i++) 
 	{
@@ -87,9 +50,9 @@ void Model::processNode(aiNode * node, const aiScene * scene)
 
 Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 {
-	std::vector<Vertex>	vertices;
+	Mesh currentMesh;
+	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
-	std::vector<Texture> textures;
 
 	for (int i = 0; i < mesh->mNumVertices; i++) 
 	{
@@ -103,7 +66,7 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 		vertex.texCoord =  t ? glm::vec2(t[i].x, t[i].y) : vertex.texCoord = glm::vec2(0.0f, 0.0f);
 		vertices.push_back(vertex);
 	}
-
+	currentMesh.setVertices(vertices);
 	auto chunk = indices.begin();
 	for (int i = 0; i < mesh->mNumFaces; i++) 
 	{
@@ -111,53 +74,41 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 		indices.insert(chunk, &face.mIndices[0], &face.mIndices[0] + face.mNumIndices);
 		chunk = indices.end();
 	}
-
+	
+	currentMesh.setIndices(indices);
 	if (mesh->mMaterialIndex >= 0) 
 	{
+		auto mat = std::unique_ptr<Material>(new Material());
 		auto material = scene->mMaterials[mesh->mMaterialIndex];
-		std::vector<Texture> diffuseMaps = loadMaterialTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
-		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-		std::vector<Texture> specularMaps = loadMaterialTexture(material, aiTextureType_SPECULAR, "texture_specular");
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-	}
-
-	return Mesh(vertices, indices, textures);
-}
-
-std::vector<Texture> Model::loadMaterialTexture(aiMaterial* material, aiTextureType type, std::string typeName)
-{
-	std::vector<Texture> textures;
-	for (int i = 0; i < material->GetTextureCount(type); i++) 
-	{
-		aiString str;
-		material->GetTexture(type, i, &str);
-		if (_textureCache.find(str.data) != _textureCache.end()) 
-		{
-			textures.push_back(_textureCache[str.data]);
-			continue;
-		}
-
-		Texture texture;
-		texture.id = loadTexture(_directory + str.C_Str());
-		texture.type = typeName;
-		texture.path = str.data;
-		material->Get(AI_MATKEY_SHININESS, texture.shininess);
-		
 		aiColor3D ka(1.f, 1.f, 1.f);
 		aiColor3D kd(1.f, 1.f, 1.f);
 		aiColor3D ks(1.f, 1.f, 1.f);
 		material->Get(AI_MATKEY_COLOR_AMBIENT, ka);
 		material->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
 		material->Get(AI_MATKEY_COLOR_SPECULAR, ks);
-		
-		texture.ka = glm::vec3(ka.r, ka.g, ka.b);
-		texture.kd = glm::vec3(kd.r, kd.g, kd.b);
-		texture.ks = glm::vec3(ks.r, ks.g, ks.b);
+		material->Get(AI_MATKEY_SHININESS, mat->shininess);
 
-		textures.push_back(texture);
-		_textureCache[str.data] = texture;
+		mat->ka = glm::vec3(ka.r, ka.g, ka.b);
+		mat->kd = glm::vec3(kd.r, kd.g, kd.b);
+		mat->ks = glm::vec3(ks.r, ks.g, ks.b);
+
+		mat->diffuseMap = loadMaterialTexture(material, aiTextureType_DIFFUSE, "diffuse");
+		mat->specularMap = loadMaterialTexture(material, aiTextureType_SPECULAR, "specular");
+		currentMesh.setMaterial(std::move(mat));
 	}
-	return textures;
+	currentMesh.init();
+	return currentMesh;
+}
+
+Texture Model::loadMaterialTexture(aiMaterial* material, aiTextureType type, std::string typeName)
+{
+	aiString str;
+	material->GetTexture(type, 0, &str);
+	Texture texture;
+	std::string path(_directory + str.C_Str());
+	texture.id = TextureManager::getInstance().loadTexture(path);
+	texture.type = typeName;
+	texture.path = path;
+	return texture;
 }

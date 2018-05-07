@@ -3,8 +3,10 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <memory>
 
 class Shader;
+class Material;
 
 struct Vertex
 {
@@ -13,34 +15,22 @@ struct Vertex
 	glm::vec2 texCoord;
 };
 
-struct Texture 
-{
-	unsigned int id;
-	float shininess;
-	std::string type;
-	std::string path;
-	glm::vec3 ka;
-	glm::vec3 kd;
-	glm::vec3 ks;
-};
-
 class Mesh
 {
 
 public:
-	Mesh() {}
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
-	void draw(Shader shader);
-private:
+	Mesh() = default;
+	void draw(const Shader& shader);
+	void setVertices(std::vector<Vertex>);
+	void setIndices(std::vector<unsigned int>);
+	void setMaterial(std::unique_ptr<Material>);
 	void init();
-public:
-	std::vector<Vertex> _vertices;
-	std::vector<unsigned int> _indices;
-	std::vector<Texture> _textures;
-
 private:
 	unsigned int _vao;
 	unsigned int _vbo;
 	unsigned int _ebo;
+	std::vector<Vertex> _vertices;
+	std::vector<unsigned int> _indices;
+	std::unique_ptr<Material> _material;
 	
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include <glm\glm.hpp>
 
+class Shader;
+
 class Light
 {
 public:
@@ -15,6 +17,7 @@ public:
 
 	void setSpecularColor(glm::vec3 specular) { _specularColor = specular; }
 	glm::vec3 getSpecularColor() { return _specularColor; }
+	virtual void pushParams(const Shader& shader) = 0;
 
 protected:
 	glm::vec3 _position = glm::vec3(0.0f);
@@ -25,18 +28,18 @@ protected:
 	float _kq;
 };
 
-class DirectionalLight : Light
+class DirectionalLight : public Light
 {
 public:
 	glm::vec3 getDirection() { return _position * -1.0f; }
 };
 
-class PointLight : Light
+class PointLight : public Light
 {
-
+	void pushParams(const Shader& shader);
 };
 
-class SpotLight : Light
+class SpotLight : public Light
 {
 public:
 	void setInnerCutOff(float inner) { _innerCutOff = inner; }
@@ -48,21 +51,3 @@ private:
 	float _innerCutOff;
 	float _outerCutOff;
 };
-
-/*
-
-struct PointLight {
-vec4 position;
-vec3 ambient;
-vec3 diffuse;
-vec3 specular;
-
-};
-
-struct DirLight {
-vec3 direction;
-vec3 ambient;
-vec3 diffuse;
-vec3 specular;
-};
-*/

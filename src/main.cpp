@@ -1,25 +1,20 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
-#include "camera.hpp"
 #include <iostream>
-
 #include <math.h>
 #include "globals.h"
-#include "model.h"
-#include "shader.hpp"
+#include "Scene.h"
 #include "light.h"
-#include <glm/gtc/type_ptr.hpp>
 
 void resizeCallback(GLFWwindow* window, int width, int height);
 void errorCallback(int error, const char* description);
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 
-
-Camera camera;
 float deltaTime, lastFrame;
 int width = 800;
 int height = 600;
+Scene scene;
 
 int main() 
 {
@@ -52,13 +47,13 @@ int main()
 
 	float currentFrame = 0.0f;
 	deltaTime = lastFrame = 0.0f;
+	scene.init();
+	scene.addModel("nanosuit/nanosuit.obj");
+	std::unique_ptr<Light> pointLight(new PointLight());
+	pointLight->setPosition(glm::vec3(1.2f, 1.0f, 2.0f));
+	scene.addLight(std::move(pointLight));
 
-	camera.setPosition(glm::vec3(0.0,0.0,3.0));
 
-	Model object("nanosuit/nanosuit.obj");
-	Model object2("nanosuit/nanosuit.obj");
-	Shader shader;
-	shader.load("basic.vert", "basic.frag");
 
 	//TODO: Add Lights to shader
 	//TODO: Set Model on shader inside Model object
@@ -72,28 +67,7 @@ int main()
 		processInput(window);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shader.use();
-
-		// view/projection transformations
-		glm::mat4 projection = camera.getProjection();
-		glm::mat4 view = camera.getView();
-		shader.setMat4("proj", 1, false, glm::value_ptr(projection));
-		shader.setMat4("view", 1, false, glm::value_ptr(view));
-
-		// render the loaded model
-		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 1.8f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		shader.setMat4("model", 1, false, glm::value_ptr(model));
-		shader.setVec3("cameraPos", camera.getX(), camera.getY(), camera.getZ());
-		object.draw(shader);
-
-		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-		shader.setMat4("model", 1, false, glm::value_ptr(model));
-
-		object2.draw(shader);
+		scene.draw();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		deltaTime = currentFrame - lastFrame;
@@ -112,18 +86,18 @@ void processInput(GLFWwindow* window)
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.moveForward();
+		scene.getCurrentCamera().moveForward();
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.moveBackward();
+		scene.getCurrentCamera().moveBackward();
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.moveLeft();
+		scene.getCurrentCamera().moveLeft();
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.moveRight();
+		scene.getCurrentCamera().moveRight();
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) 
 {
-	camera.lookAt(xpos+width, ypos+height);
+	scene.getCurrentCamera().lookAt(xpos+width, ypos+height);
 }
 
 void resizeCallback(GLFWwindow* window, int width, int height) 
