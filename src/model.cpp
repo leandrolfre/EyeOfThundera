@@ -6,8 +6,9 @@
 #include <iostream>
 #include "TextureManager.h"
 #include <memory>
+#include <glm\gtc\type_ptr.hpp>
 
-Model::Model(const std::string& path)
+Model::Model(const std::string& path) : _scale(1.0f)
 {
 	loadModel(path);
 }
@@ -23,7 +24,7 @@ void Model::draw(const Shader& shader)
 void Model::loadModel(const std::string& path)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
 	{
 		std::cout << "ASSIMP ERROR: " << importer.GetErrorString() << std::endl;
@@ -56,7 +57,6 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 
 	for (int i = 0; i < mesh->mNumVertices; i++) 
 	{
-		
 		auto v = mesh->mVertices[i];
 		auto n = mesh->mNormals ? mesh->mNormals[i] : aiVector3D(0.0f);
 		auto t = mesh->mTextureCoords[0];
@@ -84,10 +84,13 @@ Mesh Model::processMesh(aiMesh * mesh, const aiScene * scene)
 		aiColor3D ka(1.f, 1.f, 1.f);
 		aiColor3D kd(1.f, 1.f, 1.f);
 		aiColor3D ks(1.f, 1.f, 1.f);
+		float shininess = 0.0f;
 		material->Get(AI_MATKEY_COLOR_AMBIENT, ka);
 		material->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
 		material->Get(AI_MATKEY_COLOR_SPECULAR, ks);
-		material->Get(AI_MATKEY_SHININESS, mat->shininess);
+		material->Get(AI_MATKEY_SHININESS, shininess);
+
+		mat->shininess = shininess >= 0.01f ? shininess : 32.0f;
 
 		mat->ka = glm::vec3(ka.r, ka.g, ka.b);
 		mat->kd = glm::vec3(kd.r, kd.g, kd.b);
@@ -106,9 +109,38 @@ Texture Model::loadMaterialTexture(aiMaterial* material, aiTextureType type, std
 	aiString str;
 	material->GetTexture(type, 0, &str);
 	Texture texture;
-	std::string path(_directory + str.C_Str());
+
+	std::string path("");
+	if (str.length > 0)
+	{
+		path = _directory + str.C_Str();
+	}
+	/*else 
+	{
+		path = "assets/default/white.png";
+	}*/
+	
 	texture.id = TextureManager::getInstance().loadTexture(path);
 	texture.type = typeName;
 	texture.path = path;
 	return texture;
+}
+
+void Model::setPosition(glm::vec3 pos) 
+{ 
+	_position = pos;
+	_model = glm::scale(glm::mat4(1.0f), _scale);
+	_model = glm::translate(_model, pos); 
+}
+
+void Model::setScale(float scale) 
+{ 
+	_scale = glm::vec3(scale);
+	_model = glm::scale(glm::mat4(1.0f), _scale);
+	_model = glm::translate(_model, _position);
+}
+
+void Model::rotate(glm::vec3 axis, float angle)
+{
+	_model = glm::rotate(_model, angle, axis);
 }

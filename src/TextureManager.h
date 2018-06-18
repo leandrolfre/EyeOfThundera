@@ -6,8 +6,9 @@
 class TextureManager 
 {
 public:
-	static TextureManager getInstance();
+	static TextureManager& getInstance();
 	unsigned int loadTexture(const std::string& texturePath);
+	unsigned int loadCubeMapTexture(const std::string& dirPath, const std::string& imageExt);
 private:
 	TextureManager() = default;
 private:

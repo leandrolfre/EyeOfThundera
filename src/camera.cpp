@@ -4,7 +4,7 @@
 
 void Camera::move(const glm::vec3 &velocity) 
 {
-	_position += deltaTime * _speed * velocity;
+	_position += deltaTime * _speed * velocity * 10.0f;
 	//logPosition();
 }
 

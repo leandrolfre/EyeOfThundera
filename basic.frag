@@ -59,15 +59,10 @@ vec3 calculateSpecular(vec3 specularLight, vec3 normal, vec3 lightDir, vec3 view
 
 vec3 calculateDirectionalLight(DirLight light, vec3 normal, vec3 viewDir) 
 {
-	//vec3  ambient = calculateAmbient(light.ambient, texture(material.diffuse, TexCoord).rgb);
-	//vec3 lightDir = normalize(-light.direction);
-	//vec3 diffuse = calculateDiffuse(light.diffuse, normal, lightDir, texture(material.diffuse, TexCoord).rgb);
-	//vec3 specular = calculateSpecular(light.specular, normal, lightDir, viewDir, texture(material.specular, TexCoord).rgb, material.shininess);
-
-	vec3  ambient = calculateAmbient(vec3(0.2, 0.2, 0.2), texture(material.diffuse, TexCoord).rgb);
-	vec3 lightDir = normalize(vec3(0.0, 0.0, 1.0));
-	vec3 diffuse = calculateDiffuse(vec3(0.5), normal, lightDir, texture(material.diffuse, TexCoord).rgb);
-	vec3 specular = calculateSpecular(vec3(1.0), normal, lightDir, viewDir, texture(material.specular, TexCoord).rgb, material.shininess);
+	vec3  ambient = calculateAmbient(light.ambient, texture(material.diffuse, TexCoord).rgb);
+	vec3 lightDir = normalize(-light.direction);
+	vec3 diffuse = calculateDiffuse(light.diffuse, normal, lightDir, texture(material.diffuse, TexCoord).rgb);
+	vec3 specular = calculateSpecular(light.specular, normal, lightDir, viewDir, texture(material.specular, TexCoord).rgb, material.shininess);
 
 	return (ambient + diffuse + specular);
 }
@@ -122,14 +117,16 @@ vec3 calculateSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir
 
 void main()
 {	
+	//if (texture(material.diffuse, TexCoord).a < 0.01) discard;
 	vec3 normal = normalize(Normal);
 	vec3 viewDir = normalize(cameraPos - FragPos);
-	//vec3 finalColor = calculateDirectionalLight(dirLight, normal, viewDir);
-	vec3 finalColor = vec3(0.0);
-	for(int i = 0; i < NR_POINT_LIGHTS; i++) 
-	{
-		finalColor+= calculatePointLight(pointLight[i], normal, FragPos, viewDir); 
-	}
+	vec3 finalColor = vec3(0.0); 
+	finalColor += calculateDirectionalLight(dirLight, normal, viewDir);
+
+	// for(int i = 0; i < NR_POINT_LIGHTS; i++) 
+	// {
+	// 	finalColor+= calculatePointLight(pointLight[i], normal, FragPos, viewDir); 
+	// }
 
 	//finalColor += calculateSpotLight(spotLight, normal, FragPos, viewDir);
 
