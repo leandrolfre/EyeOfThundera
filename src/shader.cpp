@@ -20,6 +20,14 @@ void Shader::load(const std::string& vertexPath, const std::string& fragmentPath
 	glDeleteShader(lmShader);
 }
 
+void Shader::loadGeometry(const std::string& geometryPath) 
+{
+	auto geometryShader = compileShader(GL_GEOMETRY_SHADER, geometryPath);
+	glAttachShader(_id, geometryShader);
+	glLinkProgram(_id);
+	glDeleteShader(geometryShader);
+}
+
 unsigned int Shader::compileShader(unsigned int type, const std::string& path)
 {
 	unsigned int shader = glCreateShader(type);

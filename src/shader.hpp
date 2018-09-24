@@ -8,6 +8,7 @@ class Shader
 public:
 	Shader() : _id(0) {};
 	void load(const std::string & vertexPath, const std::string & fragmentPath);
+	void loadGeometry(const std::string& geometryPath);
 	void use();
 	void setBool(const std::string& name, bool value) const;
 	void setInt(const std::string& name, int value) const;

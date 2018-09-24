@@ -41,13 +41,16 @@ void Scene::draw()
 
 	_skybox.draw(_defaultCamera);
 }
-
+float lastDt = 0.0f;
 void Scene::update(float dt) 
 {
 	for (int i = 0; i < _modelList.size(); i++)
 	{
 		_modelList.at(i)->rotate(glm::vec3(0.0, 1.0f, 0.0), dt);
 	}
+	//_reflection.use();
+	//_reflection.setFloat("time", lastDt);
+	//lastDt += 0.01;
 }
 void Scene::addModel(std::unique_ptr<Model> model)
 {
@@ -64,12 +67,14 @@ void Scene::init()
 	_defaultCamera.setPosition(glm::vec3(0.0, 0.0, 20.0));
 	//_shader.load("basic.vert", "basic.frag");
 	_reflection.load("reflection.vert", "reflection.frag");
+	//_reflection.loadGeometry("explode.geo");
 	_skybox.init();
 }
 
 void Scene::incBias() 
 { 
 	_fresnelBias += 0.01f; 
+	//lastDt = 0.0f;
 }
 
 void Scene::decBias() 

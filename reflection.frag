@@ -27,8 +27,6 @@ void main()
 	vec3 reflectVec = reflect(I, N);
 	
 	float reflectionFactor = max(0.0, min(1.0, fresnelBias + fresnelScale * pow(1.0 + dot(I, N), fresnelPower)));
-	//FragColor = vec4(mix(diffuseColor * brightness, texture(cubemap, reflectVec).rgb, 0.8), 1.0);
-	//FragColor = vec4(mix(diffuseColor * brightness, texture(cubemap, refractVec).rgb, 0.8), 1.0);
 	FragColor = vec4(mix(diffuseColor*brightness, mix(texture(cubemap, refractVec).rgb, texture(cubemap, reflectVec).rgb, reflectionFactor), 1.0), 1.0);
 	//FragColor = vec4(mix(texture(cubemap, refractVec).rgb, texture(cubemap, reflectVec).rgb, reflectionFactor), 1.0);
 }
