@@ -1,5 +1,3 @@
-#include <glad\glad.h>
-#include <GLFW\glfw3.h>
 #include <iostream>
 #include <math.h>
 #include "globals.h"
@@ -20,13 +18,6 @@ Scene scene;
 
 void setupSponzaScene() 
 {
-	glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glEnable(GL_MULTISAMPLE);
-
 	/*glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 	auto model = std::unique_ptr<Model>(new Model("assets/models/sponza/sponza.obj"));
@@ -105,11 +96,6 @@ void createFbo(GLuint& fbo, GLuint& texture)
 
 int main() 
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwSetErrorCallback(errorCallback);
 
 	GLFWwindow* window = glfwCreateWindow(width, height, "Fresnel", NULL, NULL);
