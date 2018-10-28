@@ -1,6 +1,8 @@
 #pragma once
 
-class IndexBuffer 
+#include "Bindable.h"
+
+class IndexBuffer : Bindable
 {
 public:
 	IndexBuffer() = default;

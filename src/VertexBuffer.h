@@ -1,6 +1,8 @@
 #pragma once
 
-class VertexBuffer 
+#include "Bindable.h"
+
+class VertexBuffer : Bindable
 {
 public:
 	VertexBuffer() = default;

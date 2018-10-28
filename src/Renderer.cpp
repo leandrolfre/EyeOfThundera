@@ -97,3 +97,139 @@ Camera* Renderer::getCamera()
 {
 	return _activeCamera;
 }
+
+void Renderer::drawScene(VisibleSet& visibleSet) 
+{
+}
+
+void Renderer::draw(Geometry* geometry) 
+{
+}
+
+void Renderer::drawElements() 
+{
+}
+
+void Renderer::applyEffect(ShaderEffect* effect, bool primaryEffect) 
+{
+}
+
+void Renderer::loadAllResources(Spatial * scene)
+{
+}
+
+void Renderer::releaseAllResources(Spatial * scene)
+{
+}
+
+void Renderer::loadResources(Geometry * geometry)
+{
+}
+
+void Renderer::releaseResources(Geometry * geometry)
+{
+}
+
+void Renderer::loadResources(ShaderEffect * shaderEffect)
+{
+}
+
+void Renderer::releaseResources(ShaderEffect * shaderEffect)
+{
+}
+
+void Renderer::loadVertexProgram(VertexProgram * vertexProgram)
+{
+	/*ResourceIdentifier* rID = vertexProgram->getIdentifier();
+	if (!rID) 
+	{
+		onLoadVertexProgram(rID, vertexProgram);
+		vertexProgram->onLoad(this, &releaseVertexProgram, rID);
+	}*/
+}
+
+void Renderer::releaseVertexProgram(Bindable * vertexProgram)
+{
+	/*ResourceIdentifier* rID = vertexProgram->getIdentifier();
+	if (rID) 
+	{
+		onReleaseVertexProgram(rID);
+		vertexProgram->onRelease(this);
+	}*/
+}
+
+void Renderer::loadPixelProgram(PixelProgram * pixelProgram)
+{
+}
+
+void Renderer::releasePixelProgram(Bindable * pixelProgram)
+{
+}
+
+void Renderer::loadTexture(Texture * texture)
+{
+}
+
+void Renderer::releaseTexture(Bindable * texture)
+{
+}
+
+void Renderer::loadVertexBuffer(int pass, const Attributes & attr, VertexBuffer * vBuffer)
+{
+}
+
+void Renderer::releaseVertexBuffer(int pass, Bindable * bindable)
+{
+}
+
+void Renderer::loadIndexBuffer(IndexBuffer * indexBuffer)
+{
+}
+
+void Renderer::releaseIndexBuffer(Bindable * bindable)
+{
+}
+
+void Renderer::onLoadVertexProgram(ResourceIdentifier * identifier, VertexProgram * vertexProgram)
+{
+	/*VertexProgramID* vpID = new VertexProgramID();
+	identifier = vpID;*/
+	/*opengl code to generate and bind a program*/
+}
+
+void Renderer::onReleaseVertexProgram(ResourceIdentifier * identifier)
+{
+	/*opengl code to release a program*/
+}
+
+void Renderer::onLoadPixelProgram(ResourceIdentifier * identifier, PixelProgram * pixelProgram)
+{
+}
+
+void Renderer::onReleasePixelProgram(ResourceIdentifier * identifier)
+{
+}
+
+void Renderer::onLoadTexture(ResourceIdentifier * identifier, Texture * texture)
+{
+}
+
+void Renderer::onReleaseTexture(ResourceIdentifier * identifier)
+{
+}
+
+void Renderer::onLoadVertexBuffer(ResourceIdentifier * identifier, const Attributes & attr, VertexBuffer * vertexBuffer)
+{
+}
+
+void Renderer::onReleaseVertexBuffer(ResourceIdentifier * identifier)
+{
+}
+
+void Renderer::onLoadIndexBuffer(ResourceIdentifier * identifier, IndexBuffer * vertexBuffer)
+{
+}
+
+void Renderer::onReleaseIndexBuffer(ResourceIdentifier * identifier)
+{
+}
