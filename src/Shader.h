@@ -2,8 +2,9 @@
 
 #include <string>
 #include <glm/glm.hpp>
+#include "Bindable.h"
 
-class Shader
+class Shader : public Bindable
 {
 public:
 	Shader() : _id(0) {};

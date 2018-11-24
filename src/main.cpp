@@ -5,6 +5,8 @@
 #include "light.h"
 #include "model.h"
 #include "shader.hpp"
+#include <glad\glad.h>
+#include <GLFW\glfw3.h>
 
 void resizeCallback(GLFWwindow* window, int width, int height);
 void errorCallback(int error, const char* description);
@@ -67,32 +69,32 @@ void setupTeapotScene()
 	scene.addModel(std::move(model));
 }
 
-void createFbo(GLuint& fbo, GLuint& texture) 
-{
-	GLuint rbo;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "Error: Framebuffer is not complete" << std::endl;
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
+//void createFbo(GLuint& fbo, GLuint& texture) 
+//{
+//	GLuint rbo;
+//	glGenTextures(1, &texture);
+//	glBindTexture(GL_TEXTURE_2D, texture);
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//	glBindTexture(GL_TEXTURE_2D, 0);
+//
+//	glGenRenderbuffers(1, &rbo);
+//	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+//	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+//
+//	glGenFramebuffers(1, &fbo);
+//	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+//	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+//
+//	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+//	{
+//		std::cout << "Error: Framebuffer is not complete" << std::endl;
+//	}
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//}
 
 int main() 
 {
@@ -124,12 +126,12 @@ int main()
 	//setupNanosuitScene();
 	setupTeapotScene();
 
-	GLuint defaultFbo, mainTex, grayFbo, grayTex, blurFbo, blurTex;
-	createFbo(defaultFbo, mainTex);
+	/*GLuint defaultFbo, mainTex, grayFbo, grayTex, blurFbo, blurTex;
+	createFbo(defaultFbo, mainTex);*/
 	/*createFbo(grayFbo, grayTex);
 	createFbo(blurFbo, blurTex);*/
 
-	float quadData[] = {
+	/*float quadData[] = {
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
 		1.0f, -1.0f,  1.0f, 0.0f,
@@ -137,8 +139,8 @@ int main()
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		1.0f, -1.0f,  1.0f, 0.0f,
 		1.0f,  1.0f,  1.0f, 1.0f
-	};
-	unsigned int screenBuffers[2];
+	};*/
+	/*unsigned int screenBuffers[2];
 	glGenVertexArrays(1, &screenBuffers[0]);
 	glGenBuffers(1, &screenBuffers[1]);
 	glBindVertexArray(screenBuffers[0]);
@@ -148,9 +150,9 @@ int main()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	glBindVertexArray(0);
+	glBindVertexArray(0);*/
 
-	Shader defaultPass, blurPass, grayScalePass;
+	/*Shader defaultPass, blurPass, grayScalePass;
 	defaultPass.load("defaultPass.vert", "defaultPass.frag");
 	blurPass.load("defaultPass.vert", "blurPassFx.frag");
 	grayScalePass.load("defaultPass.vert", "grayscalePassFx.frag");
@@ -161,7 +163,7 @@ int main()
 	blurPass.setInt("mainTex", 0);
 
 	grayScalePass.use();
-	grayScalePass.setInt("mainTex", 0);
+	grayScalePass.setInt("mainTex", 0);*/
 
 	while (!glfwWindowShouldClose(window)) 
 	{

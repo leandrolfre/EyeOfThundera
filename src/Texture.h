@@ -2,7 +2,7 @@
 
 #include "Bindable.h"
 
-class Texture : Bindable
+class Texture : public Bindable
 {
 public:
 	Texture() = default;

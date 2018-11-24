@@ -1,6 +1,7 @@
 #pragma once
 
-#include<string>
+#include <string>
+#include <functional>
 
 class Camera;
 class VisibleSet;
@@ -15,9 +16,7 @@ class Attributes;
 class VertexBuffer;
 class IndexBuffer;
 class ResourceIdentifier;
-
-using releaseFunction = void(*) (Bindable*);
-using releasePassFunction = void(*)(int, Bindable*);
+class Program;
 
 class Renderer {
 	
@@ -26,21 +25,12 @@ public:
 	~Renderer() = default;
 	void initSystem();
 
-	void enableDepth();
-	void disableDepth();
-	void enableStencil();
-	void disableStencil();
-	void enableCullFace();
-	void disableCullFace();
-	void enableMultiSample();
-	void disableMultiSample();
-	void clearActiveBuffers();
 	void setCamera(Camera* camera);
 	Camera* getCamera();
 
 	void drawScene(VisibleSet& visibleSet);
 	void draw(Geometry* geometry);
-	void applyEffect(ShaderEffect* effect, bool primaryEffect);
+	void applyEffect(ShaderEffect* effect, bool& primaryEffect);
 
 	void loadAllResources(Spatial* scene);
 	void releaseAllResources(Spatial* scene);
@@ -50,35 +40,36 @@ public:
 	void loadResources(ShaderEffect* shaderEffect);
 	void releaseResources(ShaderEffect* shaderEffect);
 
-	void loadVertexProgram(VertexProgram* vertexProgram);
-	void releaseVertexProgram(Bindable* vertexProgram);
-	void loadPixelProgram(PixelProgram* pixelProgram);
-	void releasePixelProgram(Bindable* pixelProgram);
+	void loadProgram(Program* vertexProgram);
+	void releaseProgram(Bindable* program);
 	void loadTexture(Texture* texture);
 	void releaseTexture(Bindable* texture);
-	void loadVertexBuffer(int pass, const Attributes& attr, VertexBuffer* vBuffer);
-	void releaseVertexBuffer(int pass, Bindable* bindable);
-	void loadIndexBuffer(IndexBuffer* indexBuffer);
-	void releaseIndexBuffer(Bindable* bindable);
+	void loadVertexBuffer(VertexBuffer* vBuffer);
+	void releaseVertexBuffer(Bindable* bindable);
 
-	void onLoadVertexProgram(ResourceIdentifier* identifier, VertexProgram* vertexProgram);
-	void onReleaseVertexProgram(ResourceIdentifier* identifier);
-	void onLoadPixelProgram(ResourceIdentifier* identifier, PixelProgram* pixelProgram);
-	void onReleasePixelProgram(ResourceIdentifier* identifier);
+	void onLoadProgram(ResourceIdentifier* identifier, Program* vertexProgram);
+	void onReleaseProgram(ResourceIdentifier* identifier);
 	void onLoadTexture(ResourceIdentifier* identifier, Texture* texture);
 	void onReleaseTexture(ResourceIdentifier* identifier);
-	void onLoadVertexBuffer(ResourceIdentifier* identifier, const Attributes& attr, VertexBuffer* vertexBuffer);
+	void onLoadVertexBuffer(ResourceIdentifier* identifier, VertexBuffer* vertexBuffer);
 	void onReleaseVertexBuffer(ResourceIdentifier* identifier);
-	void onLoadIndexBuffer(ResourceIdentifier* identifier, IndexBuffer* vertexBuffer);
-	void onReleaseIndexBuffer(ResourceIdentifier* identifier);
+
+	void enableProgram(Program* vProgram);
+	void disableProgram(Program* vProgram);
+	void enableTexture(Texture* texture);
+	void disableTexture(Texture* texture);
+	ResourceIdentifier* enableVertexBuffer(VertexBuffer* vBuffer);
+	void disableVertexBuffer(ResourceIdentifier* ri);
 
 private:
-	void enableBuffer(int buffer);
-	void disableBuffer(int buffer);
 	void drawElements();
+	void setWorldTransformation();
+	void restoreWorldTransformation();
+
 
 	int _width;
 	int _height;
-	int _activeBuffers;
 	Camera* _activeCamera;
+	Geometry* _currentGeometry;
+
 };

@@ -2,7 +2,7 @@
 
 #include "Bindable.h"
 
-class Program : Bindable 
+class Program : public Bindable 
 {
 public:
 	Program() = default;
