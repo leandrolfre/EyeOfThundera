@@ -1,24 +1,27 @@
 #include "Renderer.h"
 #include <glad\glad.h>
-#include <GLFW\glfw3.h>
+#include "Bindable.h"
+#include "camera.hpp"
 #include "ResourceIdentifier.h"
+#include "Geometry.h"
 #include "Program.h"
 #include "Texture.h"
 #include "VertexBuffer.h"
-
+//#include "VisibleSet.h"
+#include "Spatial.h"
+#include "Material.h"
 
 Renderer::Renderer(int width, int height) : _width(width), _height(height)
 {
-
 }
 
-void Renderer::initSystem() 
+Renderer::~Renderer()
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+}
+
+bool Renderer::initSystem(LoadProc proc) const
+{
+	return gladLoadGLLoader(proc);
 }
 
 
@@ -32,38 +35,44 @@ Camera* Renderer::getCamera()
 	return _activeCamera;
 }
 
-void Renderer::drawScene(VisibleSet& visibleSet) 
+//Temporary
+void Renderer::drawScene(std::vector<std::unique_ptr<Geometry>>& visibleSet)
 {
+	//Handle here different rendering path(forward, deferred)
+	//also post processing
+	for (int i = 0; i < visibleSet.size(); i++)
+	{
+		draw(visibleSet[i].get());
+	}
 }
+
+//void Renderer::drawScene(VisibleSet& visibleSet) 
+//{
+//	//Handle here different rendering path(forward, deferred)
+//	//also post processing
+//}
 
 void Renderer::draw(Geometry* geometry) 
 {
-	_currentGeometry = geometry;
-	//TODO: Here setGlobalState receive a list of states(Alpha, Cull, Stencil...). Use an Wrapper GlobalState instead.
-	setGlobalState(geometry->states);
+	//temporary ogl code
+	glClearColor(0.0f, 0.5f, 1.0f, 1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_MULTISAMPLE);
+
+	////TODO: Here setGlobalState receive a list of states(Alpha, Cull, Stencil...). Use an Wrapper GlobalState instead.
+	//setGlobalState(geometry->states);
 	setWorldTransformation();
+	auto vb = geometry->getVertexBuffer();
+	enableVertexBuffer(vb);
 
-	//TODO: replace this enableIndexBuffer by VAO logic
-	enableIndexBuffer();
+	applyMaterial(geometry->getMaterial());
 
-	bool isPrimaryEffect = true;
-
-	//TODO: Remove this light effect logic
-	if (_currentGeometry->lightEffect)
-	{
-		applyEffect(_currentGeometry->lightEffect, isPrimaryEffect);
-	}
-
-	for (int i = 0; i < _currentGeometry->numEffects; ++i) 
-	{
-		ShaderEffect* effect = _currentGeometry->getEffect(i);
-		applyEffect(effect, isPrimaryEffect);
-	}
-
-	disableIndexBuffer();
-	restoreWorldTransformation();
-	//restoreGlobalState();
-	_currentGeometry = nullptr;
+	disableVertexBuffer();
+	//restoreWorldTransformation();
+	////restoreGlobalState();
 }
 
 void Renderer::drawElements() 
@@ -79,32 +88,32 @@ void Renderer::restoreWorldTransformation()
 {
 }
 
-void Renderer::applyEffect(ShaderEffect* effect, bool& primaryEffect) 
+void Renderer::applyMaterial(Material* mat) 
 {
-	for (int pass; pass < effect->numPass; ++pass) 
-	{
-		//effect->loadPrograms(pass);
-		effect->setGlobalState(pass, this, primaryEffect);
+	//for (int pass; pass < effect->numPass; ++pass) 
+	//{
+	//	//effect->loadPrograms(pass);
+	//	effect->setGlobalState(pass, this, primaryEffect);
 
-		//TODO: Make VertexProgram and PixelProgram into Program
-		VertexProgram* vProgram = effect->getVProgram(pass);
-		enableVertexProgram(vProgram);
+	//	//TODO: Make VertexProgram and PixelProgram into Program
+	//	VertexProgram* vProgram = effect->getVProgram(pass);
+	//	enableVertexProgram(vProgram);
 
-		PixelProgram* pProgram= effect->getPProgram();
-		enablePixelProgram(pProgram);
+	//	PixelProgram* pProgram= effect->getPProgram();
+	//	enablePixelProgram(pProgram);
 
-		//enable/setup textures
+	//	//enable/setup textures
 
-		//load vertexAttributes
+	//	//load vertexAttributes
 
-		drawElements();
+	//	drawElements();
 
-		//disable resources (program, textures...)
+	//	//disable resources (program, textures...)
 
-		//effect->restoreGlobalState();
-	}
+	//	//effect->restoreGlobalState();
+	//}
 
-	primaryEffect = false;
+	//primaryEffect = false;
 }
 
 void Renderer::loadAllResources(Spatial * scene)
@@ -123,11 +132,11 @@ void Renderer::releaseResources(Geometry * geometry)
 {
 }
 
-void Renderer::loadResources(ShaderEffect * shaderEffect)
+void Renderer::loadResources(Material* mat)
 {
 }
 
-void Renderer::releaseResources(ShaderEffect * shaderEffect)
+void Renderer::releaseResources(Material* material)
 {
 }
 
@@ -136,7 +145,7 @@ void Renderer::loadProgram(Program* program)
 	ResourceIdentifier* rID = program->getIdentifier();
 	if (!rID) 
 	{
-		onLoadProgram(rID, program);
+		onLoadProgram(program);
 		//program->onLoad(this, &releaseVertexProgram, rID);
 	}
 }
@@ -165,7 +174,7 @@ void Renderer::disableProgram(Program* program)
 	releaseProgram(program);
 }
 
-void Renderer::onLoadProgram(ResourceIdentifier * identifier, Program * vertexProgram)
+void Renderer::onLoadProgram(Program * vertexProgram)
 {
 	/*VertexProgramID* vpID = new VertexProgramID();
 	identifier = vpID;*/
@@ -182,7 +191,7 @@ void Renderer::loadTexture(Texture * texture)
 	ResourceIdentifier* id = texture->getIdentifier();
 	if (!id) 
 	{
-		onLoadTexture(id, texture);
+		onLoadTexture(texture);
 	}
 }
 
@@ -209,7 +218,7 @@ void Renderer::disableTexture(Texture* texture)
 	}
 }
 
-void Renderer::onLoadTexture(ResourceIdentifier * identifier, Texture * texture)
+void Renderer::onLoadTexture(Texture * texture)
 {
 }
 
@@ -217,35 +226,69 @@ void Renderer::onReleaseTexture(ResourceIdentifier * identifier)
 {
 }
 
+void Renderer::enableVertexBuffer(VertexBuffer* vBuffer)
+{
+	loadVertexBuffer(vBuffer);
+	glBindVertexArray(vBuffer->getIdentifier()->getID());
+}
+
 void Renderer::loadVertexBuffer(VertexBuffer * vBuffer)
 {
 	ResourceIdentifier* id = vBuffer->getIdentifier();
 	if (!id)
 	{
-		onLoadVertexBuffer(id, vBuffer);
+		onLoadVertexBuffer(vBuffer);
 	}
 }
 
-void Renderer::releaseVertexBuffer(Bindable * bindable)
+void Renderer::onLoadVertexBuffer(VertexBuffer* vertexBuffer)
 {
+	GLuint vao, vbo, ebo;
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &ebo);
+
+	glBindVertexArray(vao);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertexBuffer->vertexBufferSize(), &vertexBuffer->vertexData()[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexBuffer->indexBufferSize(), &vertexBuffer->indexData()[0], GL_STATIC_DRAW);
+
+	//vertex position
+	if (vertexBuffer->hasPositions)
+	{
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	}
+
+	//vertex normal
+	if (vertexBuffer->hasNormals)
+	{
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	}
+
+	//vertex texture coords
+	if (vertexBuffer->hasTexCoords)
+	{
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+	}
+
+	glBindVertexArray(0);
+
+	vertexBuffer->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(vao)));
+
 }
 
-void Renderer::onLoadVertexBuffer(ResourceIdentifier* identifier, VertexBuffer * vertexBuffer)
+void Renderer::disableVertexBuffer()
 {
-	/*VertexProgramID* vpID = new VertexProgramID();
-	identifier = vpID;*/
-	/*opengl code to generate and bind a program*/
+	onReleaseVertexBuffer();
 }
 
-void Renderer::onReleaseVertexBuffer(ResourceIdentifier* identifier)
+void Renderer::onReleaseVertexBuffer()
 {
-}
-
-ResourceIdentifier* Renderer::enableVertexBuffer(VertexBuffer* vBuffer)
-{
-	return nullptr;
-}
-
-void Renderer::disableVertexBuffer(ResourceIdentifier* ri)
-{
+	glBindVertexArray(0);
 }

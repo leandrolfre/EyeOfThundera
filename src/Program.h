@@ -5,6 +5,6 @@
 class Program : public Bindable 
 {
 public:
-	Program() = default;
-	virtual ~Program() = default;
+	Program();
+	virtual ~Program();
 };

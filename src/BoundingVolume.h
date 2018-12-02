@@ -3,6 +3,6 @@
 class BoundingVolume 
 {
 public:
-	BoundingVolume() = default;
-	~BoundingVolume() = default;
+	BoundingVolume();
+	~BoundingVolume();
 };

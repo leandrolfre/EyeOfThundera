@@ -1,10 +1,14 @@
-#include "shader.hpp"
+#include "Shader.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <glad\glad.h>
 
-void Shader::load(const std::string& vertexPath, const std::string& fragmentPath) 
+Shader::Shader()
+{
+}
+
+void Shader::load(const std::string& vertexPath, const std::string& fragmentPath)
 {
 	unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexPath);
 	unsigned int fragShader = compileShader(GL_FRAGMENT_SHADER, fragmentPath);

@@ -3,8 +3,9 @@
 class ResourceIdentifier 
 {
 public:
-	ResourceIdentifier(int id) : _id(id) {}
-	~ResourceIdentifier() {}
+	ResourceIdentifier();
+	ResourceIdentifier(int id);
+	~ResourceIdentifier();
 	int getID() { return _id; }
 private:
 	int _id;

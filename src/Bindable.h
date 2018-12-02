@@ -1,15 +1,17 @@
 #pragma once
 
 #include <memory>
+#include "ResourceIdentifier.h"
 
-class ResourceIdentifier;
+using ResourceIdUPtr = std::unique_ptr<ResourceIdentifier>;
 
 class Bindable 
 {
 public:
-	Bindable() = default;
-	virtual ~Bindable() = default;
+	Bindable();
+	virtual ~Bindable();
 	ResourceIdentifier* getIdentifier() { return _identifier.get(); }
+	void setIdentifier(ResourceIdUPtr resId) { _identifier = std::move(resId); }
 private:
-	std::unique_ptr<ResourceIdentifier> _identifier;
+	ResourceIdUPtr _identifier;
 };

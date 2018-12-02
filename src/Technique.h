@@ -1,16 +1,19 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 class Pass;
 
+using PassUPtr = std::unique_ptr<Pass>;
+
 class Technique 
 {
 public:
-	Technique() = default;
-	~Technique() = default;
+	Technique();
+	~Technique();
 private:
 	std::string _name;
-	std::vector<Pass> _passes;
+	std::vector<PassUPtr> _passes;
 };

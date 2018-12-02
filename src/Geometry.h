@@ -2,17 +2,24 @@
 
 #include <memory>
 
-class Material;
-class BoundingVolume;
 class VertexBuffer;
+class BoundingVolume;
+class Material;
+
+using VertexBufferUPtr = std::unique_ptr<VertexBuffer>;
+using MaterialUPtr = std::unique_ptr<Material>;
 
 class Geometry 
 {
 public:
-	Geometry() = default;
-	virtual ~Geometry() = default;
+	Geometry();
+	Geometry(VertexBufferUPtr vb);
+	~Geometry();
+	VertexBuffer* getVertexBuffer() { return _vBuffer.get(); }
+	Material* getMaterial() { return _material.get(); }
+	void setMaterial(MaterialUPtr mat) { _material = std::move(mat); }
 private:
-	std::unique_ptr<Material> _material;
+	MaterialUPtr _material;
 	std::unique_ptr<BoundingVolume> _boundingVolume;
-	std::unique_ptr<VertexBuffer> _buffer;
+	VertexBufferUPtr _vBuffer;
 };

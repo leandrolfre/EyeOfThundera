@@ -14,8 +14,15 @@ struct Vertex
 class VertexBuffer : public Bindable
 {
 public:
-	VertexBuffer() = default;
-	~VertexBuffer() = default;
+	VertexBuffer(std::vector<Vertex>&& vertexList, std::vector<unsigned int>&& indices);
+	~VertexBuffer();
+	int vertexBufferSize() { return _vertices.size() * sizeof(Vertex); }
+	int indexBufferSize() { return _indices.size() * sizeof(unsigned int); }
+	const std::vector<Vertex>& vertexData() { return _vertices; }
+	const std::vector<unsigned int>& indexData() { return _indices; }
+	bool hasPositions;
+	bool hasNormals;
+	bool hasTexCoords;
 private:
 	std::vector<Vertex> _vertices;
 	std::vector<unsigned int> _indices;

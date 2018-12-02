@@ -7,7 +7,7 @@
 class Shader : public Bindable
 {
 public:
-	Shader() : _id(0) {};
+	Shader();
 	void load(const std::string & vertexPath, const std::string & fragmentPath);
 	void loadGeometry(const std::string& geometryPath);
 	void use();

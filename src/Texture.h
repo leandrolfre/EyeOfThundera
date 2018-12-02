@@ -5,6 +5,6 @@
 class Texture : public Bindable
 {
 public:
-	Texture() = default;
-	virtual ~Texture() = default;
+	Texture();
+	virtual ~Texture();
 };

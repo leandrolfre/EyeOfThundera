@@ -12,7 +12,7 @@ public:
 	int attachChild(Spatial* child);
 	int detachChild(Spatial* child);
 	Spatial* detachChildAt(int i);
-	Spatial setChild(int i, Spatial* child);
+	Spatial* setChild(int i, Spatial* child);
 	Spatial* getChild(int i);
 protected:
 	std::vector<Spatial*> _children;

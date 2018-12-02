@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.hpp"
+#include "Shader.h"
 
 class Camera;
 

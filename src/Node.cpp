@@ -20,7 +20,7 @@ Spatial * Node::detachChildAt(int i)
 	return nullptr;
 }
 
-Spatial Node::setChild(int i, Spatial * child)
+Spatial* Node::setChild(int i, Spatial * child)
 {
 	return nullptr;
 }
