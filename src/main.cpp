@@ -3,8 +3,9 @@
 #include <GLFW\glfw3.h>
 #include "globals.h"
 #include "light.h"
-#include "Renderer.h"
 #include "MeshImporter.h"
+#include "Renderer.h"
+#include "Geometry.h"
 
 void resizeCallback(GLFWwindow* window, int width, int height);
 void errorCallback(int error, const char* description);
