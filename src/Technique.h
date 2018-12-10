@@ -12,7 +12,11 @@ class Technique
 {
 public:
 	Technique();
+	Technique(std::string&& name);
 	~Technique();
+	std::string getName();
+	void addPass(PassUPtr p);
+	Pass* getPass(int i);
 private:
 	std::string _name;
 	std::vector<PassUPtr> _passes;

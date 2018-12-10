@@ -12,6 +12,8 @@ class Material
 public:
 	Material();
 	~Material();
+	void addTechnique(TechniqueUPtr t);
+	Technique* getTechnique(const std::string& name);
 private:
 	std::string _name;
 	std::unordered_map<std::string, TechniqueUPtr> _techniques;

@@ -87,9 +87,13 @@ std::vector<GeometryUPtr> MeshImporter::getMeshes()
 
  std::unique_ptr<Material> MeshImporter::createMaterial(aiMesh* mesh) 
  {
-	 auto material = new Material();
+	 auto material = std::unique_ptr<Material>(new Material());
+	 auto technique = std::unique_ptr<Technique>(new Technique("normal"));
+	 auto pass = std::unique_ptr<Pass>(new Pass());
 
-	return MaterialUPtr(material);
+	 technique->addPass(std::move(pass));
+	 material->addTechnique(std::move(technique));
+	return material;
  }
 
 //Texture Model::loadMaterialTexture(aiMaterial* material, aiTextureType type, std::string typeName)
