@@ -10,18 +10,7 @@ Shader::Shader()
 
 void Shader::load(const std::string& vertexPath, const std::string& fragmentPath)
 {
-	unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexPath);
-	unsigned int fragShader = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
-	unsigned int lmShader = compileShader(GL_FRAGMENT_SHADER, "lightModels.frag");
-
-	_id = glCreateProgram();
-	glAttachShader(_id, vertexShader);
-	glAttachShader(_id, lmShader);
-	glAttachShader(_id, fragShader);
-	glLinkProgram(_id);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragShader);
-	glDeleteShader(lmShader);
+	
 }
 
 void Shader::loadGeometry(const std::string& geometryPath) 

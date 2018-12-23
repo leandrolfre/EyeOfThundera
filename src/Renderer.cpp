@@ -5,11 +5,13 @@
 #include "ResourceIdentifier.h"
 #include "Geometry.h"
 #include "Program.h"
-#include "Texture.h"
+#include "Sampler.h"
 #include "VertexBuffer.h"
 //#include "VisibleSet.h"
 #include "Spatial.h"
 #include "Material.h"
+#include <iostream>
+#include "TextureManager.h"
 
 Renderer::Renderer(int width, int height) : _width(width), _height(height)
 {
@@ -146,7 +148,6 @@ void Renderer::loadProgram(Program* program)
 	if (!rID) 
 	{
 		onLoadProgram(program);
-		//program->onLoad(this, &releaseVertexProgram, rID);
 	}
 }
 
@@ -156,7 +157,6 @@ void Renderer::releaseProgram(Bindable * program)
 	if (rID) 
 	{
 		onReleaseProgram(rID);
-		//program->onRelease(this);
 	}
 }
 
@@ -164,9 +164,7 @@ void Renderer::enableProgram(Program* program)
 {
 	loadProgram(program);
 	ResourceIdentifier* id = program->getIdentifier();
-	//TODO:init resource
-	//onEnableProgram();
-
+	glUseProgram(id->getID());
 }
 
 void Renderer::disableProgram(Program* program)
@@ -174,56 +172,217 @@ void Renderer::disableProgram(Program* program)
 	releaseProgram(program);
 }
 
-void Renderer::onLoadProgram(Program * vertexProgram)
+void Renderer::onLoadProgram(Program * program)
 {
-	/*VertexProgramID* vpID = new VertexProgramID();
-	identifier = vpID;*/
-	/*opengl code to generate and bind a program*/
+	auto id =  glCreateProgram();
+	//Insert builtin uniforms
+	//unsigned int lmShader = compileShader(GL_FRAGMENT_SHADER, "lightModels.frag");
+
+	program->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(id)));
+
+	for (int i = 0; i < (int)ShaderType::ShaderTypeMax; ++i) 
+	{
+		auto shaderId = compileShader((ShaderType)i, program);
+		glAttachShader(id, shaderId);
+		glDeleteShader(shaderId);
+	}
+	glLinkProgram(id);
 }
 
 void Renderer::onReleaseProgram(ResourceIdentifier * identifier)
 {
-	/*opengl code to release a program*/
+	glDeleteProgram(identifier->getID());
+
 }
 
-void Renderer::loadTexture(Texture * texture)
+unsigned int Renderer::compileShader(ShaderType type, Program* program) {
+
+	auto shader = 0;
+
+	switch (type)
+	{
+	case ShaderType::Vertex:
+		shader = glCreateShader(GL_VERTEX_SHADER);
+		break;
+	case ShaderType::Fragment:
+		shader = glCreateShader(GL_FRAGMENT_SHADER);
+		break;
+	case ShaderType::Geometry:
+		shader = glCreateShader(GL_GEOMETRY_SHADER);
+		break;
+	}
+	auto shaderSource = program->getShaderByType(type)->source.c_str();
+	glShaderSource(shader, 1, &shaderSource, nullptr);
+	glCompileShader(shader);
+
+	checkError(shader);
+
+	return shader;
+}
+
+void Renderer::checkError(unsigned int shader) const
 {
-	ResourceIdentifier* id = texture->getIdentifier();
+	int  success;
+	char infoLog[1024];
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+}
+
+void Renderer::loadSampler2D(Sampler2D * sampler)
+{
+	ResourceIdentifier* id = sampler->getIdentifier();
 	if (!id) 
 	{
-		onLoadTexture(texture);
+		onLoadSampler2D(sampler);
 	}
 }
 
-void Renderer::releaseTexture(Bindable * texture)
+void Renderer::releaseSampler2D(Bindable * sampler)
 {
-	ResourceIdentifier* id = texture->getIdentifier();
+	ResourceIdentifier* id = sampler->getIdentifier();
 	if (id) 
 	{
-		onReleaseTexture(id);
+		onReleaseSampler2D(id);
 	}
 }
 
-void Renderer::enableTexture(Texture* texture)
+void Renderer::enableSampler2D(Sampler2D* sampler)
 {
-	loadTexture(texture);
-	ResourceIdentifier* id = texture->getIdentifier();
+	loadSampler2D(sampler);
+	ResourceIdentifier* id = sampler->getIdentifier();
+	glActiveTexture(GL_TEXTURE0 + sampler->unitID);
+	glBindTexture(GL_TEXTURE_2D, id->getID());
 }
 
-void Renderer::disableTexture(Texture* texture)
+void Renderer::disableSampler2D(Sampler2D* sampler)
 {
-	if (texture->getIdentifier())
+	if (sampler->getIdentifier())
 	{
-		releaseTexture(texture);
+		releaseSampler2D(sampler);
 	}
 }
 
-void Renderer::onLoadTexture(Texture * texture)
+void Renderer::onLoadSampler2D(Sampler2D* sampler)
+{
+	unsigned int textureId;
+	glGenTextures(1, &textureId);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, translateWrapMode(sampler->wrapS));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, translateWrapMode(sampler->wrapT));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, translateFilterMode(sampler->minFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, translateFilterMode(sampler->magFilter));
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sampler->_texture->width, sampler->_texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sampler->_texture->data);
+	if (sampler->generateMipmap)
+	{
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	sampler->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(textureId)));
+}
+
+void Renderer::onReleaseSampler2D(ResourceIdentifier * identifier)
 {
 }
 
-void Renderer::onReleaseTexture(ResourceIdentifier * identifier)
+void Renderer::loadSamplerCube(SamplerCube* sampler)
 {
+	ResourceIdentifier* id = sampler->getIdentifier();
+	if (!id)
+	{
+		onLoadSamplerCube(sampler);
+	}
+}
+
+void Renderer::releaseSamplerCube(Bindable * sampler)
+{
+	ResourceIdentifier* id = sampler->getIdentifier();
+	if (id)
+	{
+		onReleaseSamplerCube(id);
+	}
+}
+
+void Renderer::onLoadSamplerCube(SamplerCube * sampler)
+{
+	GLuint textureId = 0;
+	glGenTextures(1, &textureId);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+	for (int i = 0; i < sampler->_textures.size(); ++i)
+	{
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, translateWrapMode(sampler->wrapS));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, translateWrapMode(sampler->wrapT));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, translateWrapMode(sampler->wrapR));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, translateFilterMode(sampler->minFilter));
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, translateFilterMode(sampler->magFilter));
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, sampler->_textures[i]->width, sampler->_textures[i]->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sampler->_textures[i]->data);
+	}
+	if (sampler->generateMipmap)
+	{
+		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+	}
+	sampler->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(textureId)));
+}
+
+void Renderer::enableSamplerCube(SamplerCube * sampler)
+{
+	loadSamplerCube(sampler);
+	ResourceIdentifier* id = sampler->getIdentifier();
+	glBindTexture(GL_TEXTURE_CUBE_MAP, id->getID());
+	glActiveTexture(GL_TEXTURE0 + sampler->unitID);
+}
+
+void Renderer::disableSamplerCube(SamplerCube * sampler)
+{
+	if (sampler->getIdentifier())
+	{
+		releaseSampler2D(sampler);
+	}
+}
+
+void Renderer::onReleaseSamplerCube(ResourceIdentifier * identifier)
+{
+}
+
+GLint Renderer::translateFilterMode(FilterMode mode)
+{
+	switch (mode)
+	{
+	case FilterMode::Nearest:
+		return GL_NEAREST;
+	case FilterMode::Linear:
+		return GL_LINEAR;
+	case FilterMode::NearestNearest:
+		return GL_NEAREST_MIPMAP_NEAREST;
+	case FilterMode::LinearNearest:
+		return GL_LINEAR_MIPMAP_NEAREST;
+	case FilterMode::NearestLinear:
+		return GL_NEAREST_MIPMAP_LINEAR;
+	case FilterMode::LinearLinear:
+		return GL_LINEAR_MIPMAP_LINEAR;
+	default:
+		return -1;
+	}
+}
+
+GLint Renderer::translateWrapMode(WrapMode mode)
+{
+	switch (mode)
+	{
+	case WrapMode::Repeat:
+		return GL_REPEAT;
+	case WrapMode::MirroredRepeat:
+		return GL_MIRRORED_REPEAT;
+	case WrapMode::ClampToEdge:
+		return GL_CLAMP_TO_EDGE;
+	case WrapMode::ClamptoBorder:
+		return GL_CLAMP_TO_BORDER;
+	default:
+		return -1;
+	}
 }
 
 void Renderer::enableVertexBuffer(VertexBuffer* vBuffer)

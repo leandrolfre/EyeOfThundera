@@ -9,7 +9,8 @@ class Camera;
 class Geometry;
 //class VisibleSet;
 class Spatial;
-class Texture;
+class Sampler2D;
+class SamplerCube;
 class VertexBuffer;
 class ResourceIdentifier;
 class Program;
@@ -40,29 +41,42 @@ public:
 	void releaseResources(Material* mat);
 
 	void loadProgram(Program* vertexProgram);
-	void releaseProgram(Bindable* program);
-	void loadTexture(Texture* texture);
-	void releaseTexture(Bindable* texture);
-	void loadVertexBuffer(VertexBuffer* vBuffer);
-
 	void onLoadProgram(Program* vertexProgram);
+	void releaseProgram(Bindable* program);
 	void onReleaseProgram(ResourceIdentifier* identifier);
-	void onLoadTexture(Texture* texture);
-	void onReleaseTexture(ResourceIdentifier* identifier);
-	void onLoadVertexBuffer(VertexBuffer* vertexBuffer);
-	void onReleaseVertexBuffer();
-
 	void enableProgram(Program* vProgram);
 	void disableProgram(Program* vProgram);
-	void enableTexture(Texture* texture);
-	void disableTexture(Texture* texture);
+
+	void loadVertexBuffer(VertexBuffer* vBuffer);
+	void onLoadVertexBuffer(VertexBuffer* vertexBuffer);
+	void onReleaseVertexBuffer();
 	void enableVertexBuffer(VertexBuffer* vBuffer);
 	void disableVertexBuffer();
+
+	void loadSampler2D(Sampler2D* texture);
+	void releaseSampler2D(Bindable* texture);
+	void onLoadSampler2D(Sampler2D* sampler);
+	void enableSampler2D(Sampler2D* texture);
+	void disableSampler2D(Sampler2D* texture);
+	void onReleaseSampler2D(ResourceIdentifier* identifier);
+
+	void loadSamplerCube(SamplerCube* sampler);
+	void releaseSamplerCube(Bindable* sampler);
+	void onLoadSamplerCube(SamplerCube* sampler);
+	void enableSamplerCube(SamplerCube* sampler);
+	void disableSamplerCube(SamplerCube* sampler);
+	void onReleaseSamplerCube(ResourceIdentifier* identifier);
+
+	GLint translateFilterMode(FilterMode mode);
+	GLint translateWrapMode(WrapMode mode);
+
 
 private:
 	void drawElements();
 	void setWorldTransformation();
 	void restoreWorldTransformation();
+	unsigned int compileShader(ShaderType type, Program* program);
+	void checkError(unsigned int shader) const;
 
 
 	int _width;

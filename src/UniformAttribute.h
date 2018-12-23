@@ -3,7 +3,8 @@
 #include <string>
 #include <glm/glm.hpp>
 
-class Texture;
+class Sampler2D;
+class SamplerCube;
 
 union UniformValue 
 {
@@ -15,7 +16,8 @@ union UniformValue
 	glm::vec3 vec3;
 	glm::vec4 vec4;
 	glm::mat4 mat4;
-	Texture* texture;
+	Sampler2D* tex2D;
+	SamplerCube* texCube;
 };
 
 class UniformAttribute 

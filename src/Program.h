@@ -12,7 +12,8 @@ enum class ShaderType
 {
 	Vertex,
 	Fragment,
-	Geometry
+	Geometry,
+	ShaderTypeMax
 };
 
 struct Shader {

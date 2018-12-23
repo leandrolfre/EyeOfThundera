@@ -12,6 +12,8 @@ class Pass
 public:
 	Pass();
 	~Pass();
+	void setProgram(Program* program);
+	Program* getProgram();
 private:
 	std::unique_ptr<RenderState> _renderState;
 	Program* _program;
