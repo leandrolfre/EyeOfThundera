@@ -23,3 +23,13 @@ Technique * Material::getTechnique(const std::string & name)
 
 	return nullptr;
 }
+
+int Material::numPasses()
+{
+    return _currentTechnique->numPasses();
+}
+
+Pass* Material::getPass(int i)
+{
+    return _currentTechnique->getPass(i);
+}

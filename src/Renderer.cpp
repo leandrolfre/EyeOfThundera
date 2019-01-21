@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include <glad\glad.h>
 #include "Bindable.h"
 #include "camera.hpp"
 #include "ResourceIdentifier.h"
@@ -12,6 +11,9 @@
 #include "Material.h"
 #include <iostream>
 #include "TextureManager.h"
+#include "UniformAttribute.h"
+#include "RenderState.h"
+#include "Pass.h"
 
 Renderer::Renderer(int width, int height) : _width(width), _height(height)
 {
@@ -92,28 +94,33 @@ void Renderer::restoreWorldTransformation()
 
 void Renderer::applyMaterial(Material* mat) 
 {
-	//for (int pass; pass < effect->numPass; ++pass) 
-	//{
-	//	//effect->loadPrograms(pass);
-	//	effect->setGlobalState(pass, this, primaryEffect);
+    int numPasses = mat->numPasses();
+	for (int i; i < numPasses; ++i) 
+	{
+        auto pass = mat->getPass(i);
+        auto& renderState = pass->getRenderState();
+        loadRenderState(renderState.get());
+		//effect->loadPrograms(pass);
+		//effect->setGlobalState(pass, this, primaryEffect);
 
-	//	//TODO: Make VertexProgram and PixelProgram into Program
-	//	VertexProgram* vProgram = effect->getVProgram(pass);
-	//	enableVertexProgram(vProgram);
+		//TODO: Make VertexProgram and PixelProgram into Program
+		/*VertexProgram* vProgram = effect->getVProgram(pass);
+		enableVertexProgram(vProgram);
 
-	//	PixelProgram* pProgram= effect->getPProgram();
-	//	enablePixelProgram(pProgram);
+		PixelProgram* pProgram= effect->getPProgram();
+		enablePixelProgram(pProgram);*/
 
-	//	//enable/setup textures
+		//enable/setup textures
+     /*set builtin uniforms
+     set user defined uniforms*/
+		//load vertexAttributes
 
-	//	//load vertexAttributes
+		drawElements();
 
-	//	drawElements();
+		//disable resources (program, textures...)
 
-	//	//disable resources (program, textures...)
-
-	//	//effect->restoreGlobalState();
-	//}
+		//effect->restoreGlobalState();
+	}
 
 	//primaryEffect = false;
 }
@@ -175,7 +182,6 @@ void Renderer::disableProgram(Program* program)
 void Renderer::onLoadProgram(Program * program)
 {
 	auto id =  glCreateProgram();
-	//Insert builtin uniforms
 	//unsigned int lmShader = compileShader(GL_FRAGMENT_SHADER, "lightModels.frag");
 
 	program->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(id)));
@@ -187,6 +193,27 @@ void Renderer::onLoadProgram(Program * program)
 		glDeleteShader(shaderId);
 	}
 	glLinkProgram(id);
+
+    GLint activeUniforms;
+    glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &activeUniforms);
+    if (activeUniforms > 0)
+    {
+        GLint length;
+        glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &length);
+        if (length > 0)
+        {
+            for (int i = 0; i < activeUniforms; ++i)
+            {
+                GLint size;
+                GLenum type;
+                char* uniformName;
+                glGetActiveUniform(id, i, length, nullptr, &size, &type, uniformName);
+                auto uniform = program->getUniformByName(uniformName);
+                uniform->location = glGetUniformLocation(id, uniformName);
+                uniform->type = type;
+            }
+        }
+    }
 }
 
 void Renderer::onReleaseProgram(ResourceIdentifier * identifier)
@@ -233,41 +260,32 @@ void Renderer::checkError(unsigned int shader) const
 	}
 }
 
-void Renderer::loadSampler2D(Sampler2D * sampler)
+void Renderer::loadSampler(Sampler2D * sampler)
 {
 	ResourceIdentifier* id = sampler->getIdentifier();
 	if (!id) 
 	{
-		onLoadSampler2D(sampler);
+		onLoadSampler(sampler);
 	}
 }
 
-void Renderer::releaseSampler2D(Bindable * sampler)
+void Renderer::enableSampler(Sampler2D* sampler)
 {
-	ResourceIdentifier* id = sampler->getIdentifier();
-	if (id) 
-	{
-		onReleaseSampler2D(id);
-	}
-}
-
-void Renderer::enableSampler2D(Sampler2D* sampler)
-{
-	loadSampler2D(sampler);
+	loadSampler(sampler);
 	ResourceIdentifier* id = sampler->getIdentifier();
 	glActiveTexture(GL_TEXTURE0 + sampler->unitID);
 	glBindTexture(GL_TEXTURE_2D, id->getID());
 }
 
-void Renderer::disableSampler2D(Sampler2D* sampler)
+void Renderer::disableSampler(Sampler2D* sampler)
 {
 	if (sampler->getIdentifier())
 	{
-		releaseSampler2D(sampler);
+		releaseSampler(sampler);
 	}
 }
 
-void Renderer::onLoadSampler2D(Sampler2D* sampler)
+void Renderer::onLoadSampler(Sampler2D* sampler)
 {
 	unsigned int textureId;
 	glGenTextures(1, &textureId);
@@ -284,29 +302,25 @@ void Renderer::onLoadSampler2D(Sampler2D* sampler)
 	sampler->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(textureId)));
 }
 
-void Renderer::onReleaseSampler2D(ResourceIdentifier * identifier)
-{
-}
-
-void Renderer::loadSamplerCube(SamplerCube* sampler)
+void Renderer::loadSampler(SamplerCube* sampler)
 {
 	ResourceIdentifier* id = sampler->getIdentifier();
 	if (!id)
 	{
-		onLoadSamplerCube(sampler);
+		onLoadSampler(sampler);
 	}
 }
 
-void Renderer::releaseSamplerCube(Bindable * sampler)
+void Renderer::releaseSampler(Bindable * sampler)
 {
 	ResourceIdentifier* id = sampler->getIdentifier();
 	if (id)
 	{
-		onReleaseSamplerCube(id);
+		onReleaseSampler(id);
 	}
 }
 
-void Renderer::onLoadSamplerCube(SamplerCube * sampler)
+void Renderer::onLoadSampler(SamplerCube * sampler)
 {
 	GLuint textureId = 0;
 	glGenTextures(1, &textureId);
@@ -327,23 +341,191 @@ void Renderer::onLoadSamplerCube(SamplerCube * sampler)
 	sampler->setIdentifier(ResourceIdUPtr(new ResourceIdentifier(textureId)));
 }
 
-void Renderer::enableSamplerCube(SamplerCube * sampler)
+void Renderer::enableSampler(SamplerCube * sampler)
 {
-	loadSamplerCube(sampler);
+	loadSampler(sampler);
 	ResourceIdentifier* id = sampler->getIdentifier();
 	glBindTexture(GL_TEXTURE_CUBE_MAP, id->getID());
 	glActiveTexture(GL_TEXTURE0 + sampler->unitID);
 }
 
-void Renderer::disableSamplerCube(SamplerCube * sampler)
+void Renderer::disableSampler(SamplerCube * sampler)
 {
 	if (sampler->getIdentifier())
 	{
-		releaseSampler2D(sampler);
+		releaseSampler(sampler);
 	}
 }
 
-void Renderer::onReleaseSamplerCube(ResourceIdentifier * identifier)
+void Renderer::loadRenderState(RenderState* renderState)
+{
+    _currentBufferMask = GL_COLOR_BUFFER_BIT;
+    if (renderState->Depth.enable) 
+    {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(translateFuncEnum(renderState->Depth.func));
+        glDepthMask((renderState->Depth.depthMask ? GL_TRUE : GL_FALSE));
+        _currentBufferMask |= GL_DEPTH_BUFFER_BIT;
+    }
+    else 
+    {
+        glDisable(GL_DEPTH_TEST);
+    }
+
+    if (renderState->Blend.enable)
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(translateBlendMode(renderState->Blend.blendSrc), translateBlendMode(renderState->Blend.blendDst));
+    }
+    else 
+    {
+        glDisable(GL_BLEND);
+    }
+
+    if (renderState->Stencil.enable)
+    {
+        glEnable(GL_STENCIL_TEST);
+        loadStencil(renderState->Stencil);
+        _currentBufferMask |= GL_STENCIL_BUFFER_BIT;
+    }
+    else
+    {
+        glDisable(GL_STENCIL_TEST);
+    }
+
+    if (renderState->CullFace.enable)
+    {
+        glEnable(GL_CULL_FACE);
+        loadCullFace(renderState->CullFace);
+    }
+}
+
+auto Renderer::translateFuncEnum(Func func) -> GLenum
+{
+    switch (func)
+    {
+    case Func::ALWAYS:
+        return GL_ALWAYS;
+    case Func::NEVER:
+        return GL_NEVER;
+    case Func::LESS:
+        return GL_LESS;
+    case Func::EQUAL:
+        return GL_EQUAL;
+    case Func::LESS_EQUAL:
+        return GL_LEQUAL;
+    case Func::GREATER:
+        return GL_GREATER;
+    case Func::NOT_EQUAL:
+        return GL_NOTEQUAL;
+    case Func::GREATER_EQUAL:
+        return GL_GEQUAL;
+    }
+}
+
+auto Renderer::translateBlendMode(BlendMode mode)->GLenum
+{
+    switch (mode)
+    {
+    case BlendMode::ZERO:
+        return GL_ZERO;
+    case BlendMode::ONE:
+        return GL_ONE;
+    case BlendMode::SRC_COLOR:
+        return GL_SRC_COLOR;
+    case BlendMode::ONE_MINUS_SRC_COLOR:
+        return GL_ONE_MINUS_SRC_COLOR;
+    case BlendMode::DST_COLOR:
+        return GL_DST_COLOR;
+    case BlendMode::ONE_MINUS_DST_COLOR:
+        return GL_ONE_MINUS_DST_COLOR;
+    case BlendMode::SRC_ALPHA:
+        return GL_SRC_ALPHA;
+    case BlendMode::ONE_MINUS_SRC_ALPHA:
+        return GL_ONE_MINUS_SRC_ALPHA;
+    case BlendMode::DST_ALPHA:
+        return GL_DST_ALPHA;
+    case BlendMode::ONE_MINUS_DST_ALPHA:
+        return GL_ONE_MINUS_DST_ALPHA;
+    case BlendMode::CONSTANT_COLOR:
+        return GL_CONSTANT_COLOR;
+    case BlendMode::ONE_MINUS_CONSTANT_COLOR:
+        return GL_ONE_MINUS_CONSTANT_COLOR;
+    case BlendMode::CONSTANT_ALPHA:
+        return GL_CONSTANT_ALPHA;
+    case BlendMode::ONE_MINUS_CONSTANT_ALPHA:
+        return GL_ONE_MINUS_CONSTANT_ALPHA;
+    }
+}
+
+auto Renderer::translateStencilOp(StencilOp operation) -> GLenum
+{
+    switch (operation)
+    {
+    case StencilOp::KEEP:
+        return GL_KEEP;
+    case StencilOp::ZERO:
+        return GL_ZERO;
+    case StencilOp::REPLACE:
+        return GL_REPLACE;
+    case StencilOp::INCR:
+        return GL_INCR;
+    case StencilOp::INCR_WRAP:
+        return GL_INCR_WRAP;
+    case StencilOp::DECR:
+        return GL_DECR;
+    case StencilOp::DECR_WRAP:
+        return GL_DECR_WRAP;
+    case StencilOp::INVERT:
+        return GL_INVERT;
+    }
+}
+
+void Renderer::loadStencil(const Stencil& stencil)
+{
+    glStencilMask(stencil.writeMask);
+    glStencilOp(translateStencilOp(stencil.stencilFail), 
+                translateStencilOp(stencil.depthFail), 
+                translateStencilOp(stencil.bothPass));
+    glStencilFunc(translateFuncEnum(stencil.func), stencil.funcRef, stencil.funcMask);
+}
+
+void Renderer::loadCullFace(const CullFace& cullFace)
+{
+    auto order = cullFace.order;
+    auto glOrder = -1;
+    switch (order)
+    {
+    case CullFaceOrder::CCW:
+        glOrder = GL_CCW;
+        break;
+    case CullFaceOrder::CW:
+        glOrder = GL_CW;
+        break;
+    default:
+        break;
+    }
+
+    auto mode = cullFace.mode;
+    auto glMode = -1;
+    switch (mode)
+    {
+    case CullFaceMode::BACK:
+        glMode = GL_BACK;
+        break;
+    case CullFaceMode::FRONT:
+        glMode = GL_FRONT;
+        break;
+    case CullFaceMode::BOTH:
+        glMode = GL_FRONT_AND_BACK;
+        break;
+    }
+
+    glCullFace(glMode);
+    glFrontFace(glOrder);
+}
+
+void Renderer::onReleaseSampler(ResourceIdentifier * identifier)
 {
 }
 

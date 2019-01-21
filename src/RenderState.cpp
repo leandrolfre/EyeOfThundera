@@ -1,78 +1,37 @@
 #include "RenderState.h"
-#include <glad\glad.h>
+
+RenderState::RenderState() 
+{
+}
+
+RenderState::~RenderState() 
+{
+}
 
 void RenderState::init() 
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//Global State
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_STENCIL_TEST);
-	glCullFace(GL_BACK);
-	glEnable(GL_MULTISAMPLE);
-	_activeBuffers = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-	glClear(_activeBuffers);
-}
+    Depth  = {  true, //enable
+                true,  //depthMask
+                Func::LESS //func
+             };
 
-void RenderState::enableDepth()
-{
-	enableBuffer(GL_DEPTH_TEST);
-}
+    Blend = {   true, //enable
+                BlendMode::SRC_ALPHA, //srcBlend
+                BlendMode::ONE_MINUS_SRC_ALPHA //dstBlend
+            };
 
-void RenderState::disableDepth()
-{
-	disableBuffer(GL_DEPTH_TEST);
-}
+    Stencil = { true, //enable
+                0xFF, //writeMask
+                0xFF, //funcMask
+                1, //funcRef
+                Func::EQUAL, //func 
+                StencilOp::KEEP, //stencilFail
+                StencilOp::KEEP , //depthFail
+                StencilOp::KEEP  //bothPass
+              };
 
-void RenderState::enableStencil()
-{
-	enableBuffer(GL_STENCIL_TEST);
-}
-
-void RenderState::disableStencil()
-{
-	disableBuffer(GL_STENCIL_TEST);
-}
-
-void RenderState::enableCullFace()
-{
-	glEnable(GL_CULL_FACE);
-}
-
-void RenderState::disableCullFace()
-{
-	glDisable(GL_CULL_FACE);
-}
-
-void RenderState::enableMultiSample()
-{
-	glEnable(GL_MULTISAMPLE);
-}
-
-void RenderState::disableMultiSample()
-{
-	glDisable(GL_MULTISAMPLE);
-}
-
-void RenderState::clearActiveBuffers()
-{
-	glClear(_activeBuffers);
-}
-
-void RenderState::enableBuffer(int buffer)
-{
-	if (!(_activeBuffers & buffer))
-	{
-		glEnable(buffer);
-		_activeBuffers |= buffer;
-	}
-}
-
-void RenderState::disableBuffer(int buffer)
-{
-	if (_activeBuffers & buffer)
-	{
-		glDisable(buffer);
-		_activeBuffers ^= buffer;
-	}
+    CullFace = { true, //enable
+                 CullFaceOrder::CCW,
+                 CullFaceMode::BACK
+               };
 }

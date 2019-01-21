@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glad\glad.h>
 #include <string>
 #include <functional>
 #include <vector>
@@ -15,6 +16,15 @@ class VertexBuffer;
 class ResourceIdentifier;
 class Program;
 class Material;
+class RenderState;
+struct Depth;
+struct Stencil;
+struct CullFace;
+enum class FilterMode;
+enum class WrapMode;
+enum class ShaderType;
+enum class BlendMode;
+enum class Func;
 
 using LoadProc = void*(*)(const char *name);
 
@@ -53,23 +63,27 @@ public:
 	void enableVertexBuffer(VertexBuffer* vBuffer);
 	void disableVertexBuffer();
 
-	void loadSampler2D(Sampler2D* texture);
-	void releaseSampler2D(Bindable* texture);
-	void onLoadSampler2D(Sampler2D* sampler);
-	void enableSampler2D(Sampler2D* texture);
-	void disableSampler2D(Sampler2D* texture);
-	void onReleaseSampler2D(ResourceIdentifier* identifier);
+	void loadSampler(Sampler2D* texture);
+	void onLoadSampler(Sampler2D* sampler);
+	void enableSampler(Sampler2D* texture);
+	void disableSampler(Sampler2D* texture);
+	void onReleaseSampler(ResourceIdentifier* identifier);
 
-	void loadSamplerCube(SamplerCube* sampler);
-	void releaseSamplerCube(Bindable* sampler);
-	void onLoadSamplerCube(SamplerCube* sampler);
-	void enableSamplerCube(SamplerCube* sampler);
-	void disableSamplerCube(SamplerCube* sampler);
-	void onReleaseSamplerCube(ResourceIdentifier* identifier);
+	void loadSampler(SamplerCube* sampler);
+	void releaseSampler(Bindable* sampler);
+	void onLoadSampler(SamplerCube* sampler);
+	void enableSampler(SamplerCube* sampler);
+	void disableSampler(SamplerCube* sampler);
+
+    void loadRenderState(RenderState* renderState);
+    auto translateFuncEnum(Func func) -> GLenum;
+    auto translateBlendMode(BlendMode mode) -> GLenum;
+    auto translateStencilOp(StencilOp operation)->GLenum;
+    void loadStencil(const Stencil& stencil);
+    void loadCullFace(const CullFace& cullFace);
 
 	GLint translateFilterMode(FilterMode mode);
 	GLint translateWrapMode(WrapMode mode);
-
 
 private:
 	void drawElements();
@@ -81,5 +95,6 @@ private:
 
 	int _width;
 	int _height;
+    int _currentBufferMask;
 	Camera* _activeCamera;
 };

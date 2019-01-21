@@ -11,10 +11,11 @@ using ProgramUPtr = std::unique_ptr<Program>;
 class ProgramManager
 {
 public:
-	static ProgramManager& getInstance();
-	void addProgram(ProgramUPtr program, const std::string& key);
-	Program* getProgram(const std::string& key);
+    static ProgramManager& getInstance();
+    void addProgram(ProgramUPtr program, const std::string& key);
+    Program* getProgram(const std::string& key);
 private:
-	ProgramManager() = default;
+    ProgramManager() = default;
 private:
-	std::unordered_map<std::string, ProgramUPtr> _programCache;
+    std::unordered_map<std::string, ProgramUPtr> _programCache;
+};

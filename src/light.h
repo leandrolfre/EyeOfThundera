@@ -16,7 +16,7 @@ public:
 
 	void setSpecularColor(glm::vec3 specular) { _specularColor = specular; }
 	glm::vec3 getSpecularColor() { return _specularColor; }
-	virtual void pushParams(const Shader& shader, int idx = 0) = 0;
+	//virtual void pushParams(const Shader& shader, int idx = 0) = 0;
 	virtual void draw(const glm::mat4& view, const glm::mat4& proj, const glm::vec3 camPos);
 
 protected:
@@ -31,20 +31,20 @@ protected:
 	unsigned int _vbo;
 	unsigned int _ebo;
 	unsigned int _textureId;
-	Shader _shader;
+	//Shader _shader;
 };
 
 class DirectionalLight : public Light
 {
 public:
 	glm::vec3 getDirection() { return _position * -1.0f; }
-	void pushParams(const Shader& shader, int idx);
+	//void pushParams(const Shader& shader, int idx);
 };
 
 class PointLight : public Light
 {
 public:
-	void pushParams(const Shader& shader, int idx);
+	//void pushParams(const Shader& shader, int idx);
 };
 
 class SpotLight : public Light

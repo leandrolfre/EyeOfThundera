@@ -15,6 +15,6 @@ private:
 	unsigned int _textureId = { 0 };
 	unsigned int _vao = { 0 };
 	unsigned int _vbo = { 0 };
-	Shader _shader;
+	//Shader _shader;
 
 };

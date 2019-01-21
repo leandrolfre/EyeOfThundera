@@ -14,6 +14,7 @@ public:
 	~Pass();
 	void setProgram(Program* program);
 	Program* getProgram();
+    RenderStateUPtr& getRenderState();
 private:
 	std::unique_ptr<RenderState> _renderState;
 	Program* _program;

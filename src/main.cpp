@@ -1,11 +1,11 @@
 #include <iostream>
 #include <math.h>
-#include <GLFW\glfw3.h>
 #include "globals.h"
 #include "light.h"
 #include "MeshImporter.h"
 #include "Renderer.h"
 #include "Geometry.h"
+#include <GLFW\glfw3.h>
 
 void resizeCallback(GLFWwindow* window, int width, int height);
 void errorCallback(int error, const char* description);
@@ -104,7 +104,7 @@ bool initWindowSystem(const Renderer& r)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return false;
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -137,7 +137,7 @@ int main()
 
 	while (!glfwWindowShouldClose(window)) 
 	{
-		currentFrame = glfwGetTime();
+		currentFrame = static_cast<float>(glfwGetTime());
 		processInput(window);
 		
 		renderer.drawScene(geometries);

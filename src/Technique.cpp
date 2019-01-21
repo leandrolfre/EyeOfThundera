@@ -20,10 +20,10 @@ std::string Technique::getName()
 
 void Technique::addPass(PassUPtr p)
 {
-	_passes.push_back(p);
+	_passes.push_back(std::move(p));
 }
 
-Pass * Technique::getPass(int i)
+Pass* Technique::getPass(int i)
 {
 	if (i < _passes.size() && _passes[i]) 
 	{
@@ -31,4 +31,9 @@ Pass * Technique::getPass(int i)
 	}
 
 	return nullptr;
+}
+
+int Technique::numPasses()
+{
+    return _passes.size();
 }

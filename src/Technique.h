@@ -17,6 +17,7 @@ public:
 	std::string getName();
 	void addPass(PassUPtr p);
 	Pass* getPass(int i);
+    int numPasses();
 private:
 	std::string _name;
 	std::vector<PassUPtr> _passes;

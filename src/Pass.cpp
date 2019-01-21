@@ -10,7 +10,7 @@ Pass::~Pass()
 {
 }
 
-void Pass::setProgram(Program * program)
+void Pass::setProgram(Program* program)
 {
 	_program = program;
 }
@@ -18,4 +18,9 @@ void Pass::setProgram(Program * program)
 Program* Pass::getProgram()
 {
 	return _program;
+}
+
+RenderStateUPtr& Pass::getRenderState()
+{
+    return _renderState;
 }
